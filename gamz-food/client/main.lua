@@ -17,7 +17,7 @@ Citizen.CreateThread(function()
         local coords = GetEntityCoords(PlayerPedId(), true)
         for k in pairs(Config.Zones) do
             if GetDistanceBetweenCoords(Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z, coords) < 1 then
-                Marker("~w~[~r~E~w~]Buy food", 27, Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z - 0.99)
+                Marker("~w~[~r~E~w~] Buy food", 27, Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z - 0.99)
                 if IsControlJustReleased(0, Keys['E']) then
                     FoodMeny()
                 end
