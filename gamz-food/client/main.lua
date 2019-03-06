@@ -17,12 +17,12 @@ Citizen.CreateThread(function()
         local coords = GetEntityCoords(PlayerPedId(), true)
         for k in pairs(Config.Zones) do
             if GetDistanceBetweenCoords(Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z, coords) < 1 then
-                Marker("~w~[~r~E~w~]Köp mat", 27, Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z - 0.99)
+                Marker("~w~[~r~E~w~]Buy food", 27, Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z - 0.99)
                 if IsControlJustReleased(0, Keys['E']) then
                     FoodMeny()
                 end
             elseif GetDistanceBetweenCoords(Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z, coords) < 10 then
-                Marker("~w~Köp mat", 27, Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z - 0.99)
+                Marker("~w~Buy food", 27, Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z - 0.99)
             end
         end
     end
@@ -34,10 +34,10 @@ function FoodMeny()
             title    = 'Kiosk',
             align    = 'center',
             elements = {
-                {label = 'Varmkorv med bröd <span style="color:green"> ' .. Config.EatPrice ..' SEK</span> ',       prop = 'prop_cs_hotdog_01',    type = 'food'},
-                {label = '150G Hamburgare <span style="color:green"> ' .. Config.EatPrice ..' SEK</span>',          prop = 'prop_cs_burger_01',    type = 'food'},
+                {label = 'Hotdog <span style="color:green"> ' .. Config.EatPrice ..' SEK</span> ',                  prop = 'prop_cs_hotdog_01',    type = 'food'},
+                {label = '150G Burger <span style="color:green"> ' .. Config.EatPrice ..' SEK</span>',              prop = 'prop_cs_burger_01',    type = 'food'},
                 {label = 'Sandwich <span style="color:green"> ' .. Config.EatPrice ..' SEK</span>',                 prop = 'prop_sandwich_01',     type = 'food'},
-                {label = 'Ramlösa 50cl <span style="color:green"> ' .. Config.DrinkPrice ..' SEK</span>',           prop = 'prop_ld_flow_bottle',  type = 'drink'},
+                {label = 'Sparkling Water 50cl <span style="color:green"> ' .. Config.DrinkPrice ..' SEK</span>',   prop = 'prop_ld_flow_bottle',  type = 'drink'},
                 {label = 'Coca Cola 33cl<span style="color:green"> ' .. Config.DrinkPrice ..' SEK</span>',          prop = 'prop_ecola_can',       type = 'drink'},
 
 
@@ -51,7 +51,7 @@ function FoodMeny()
                         TriggerServerEvent("gamz-food:removeMoney", Config.EatPrice)
                         eat(data.current.prop)
                     else
-                        ESX.ShowNotification("Du har inte råd.")
+                        ESX.ShowNotification("You don't have enough cash.")
                     end
                 end)
             elseif selected == 'drink' then
@@ -61,7 +61,7 @@ function FoodMeny()
                         TriggerServerEvent("gamz-food:removeMoney", Config.DrinkPrice)
                         drink(data.current.prop) 
                     else
-                        ESX.ShowNotification("Du har inte råd.")
+                        ESX.ShowNotification("You don't have enough cash.")
                     end
                 end)
             end
