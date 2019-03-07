@@ -45,3 +45,18 @@ function Marker(hint, type, x, y, z)
     Draw3DText(x, y, z + 1.0, hint)
 	DrawMarker(type, x, y, z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, 1.0, 1.0, 2.0, 55, 175, 55, 100, false, true, 2, false, false, false, false)
 end
+
+-- Create Blips
+Citizen.CreateThread(function()
+	for k in pairs(Config.Zones) do
+		local blip = AddBlipForCoord(Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z)
+		SetBlipSprite (blip, 280)
+		SetBlipDisplay(blip, 4)
+		SetBlipScale  (blip, 1.0)
+		SetBlipColour (blip, 75)
+		SetBlipAsShortRange(blip, true)
+		BeginTextCommandSetBlipName("STRING")
+		AddTextComponentString('Food Chain')
+		EndTextCommandSetBlipName(blip)
+	end
+end)
