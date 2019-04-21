@@ -17,7 +17,7 @@ Citizen.CreateThread(function()
         local coords = GetEntityCoords(PlayerPedId(), true)
         for k in pairs(Config.Zones) do
             if GetDistanceBetweenCoords(Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z, coords) < 1 then
-                Marker("~w~[~r~E~w~]Buy food", 27, Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z - 0.99)
+                Marker("~w~[~r~E~w~] Buy food", 27, Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z - 0.99)
                 if IsControlJustReleased(0, Keys['E']) then
                     FoodMeny()
                 end
@@ -29,13 +29,13 @@ Citizen.CreateThread(function()
 end)
 
 function FoodMeny()
-    ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'kiosk',
+    ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'foodstand',
         {
-            title    = 'Kiosk',
+            title    = 'Food Stand',
             align    = 'center',
             elements = {
                 {label = 'Hotdog <span style="color:green"> ' .. Config.EatPrice ..' SEK</span> ',                  prop = 'prop_cs_hotdog_01',    type = 'food'},
-                {label = '150G Burger <span style="color:green"> ' .. Config.EatPrice ..' SEK</span>',              prop = 'prop_cs_burger_01',    type = 'food'},
+                {label = 'Burger <span style="color:green"> ' .. Config.EatPrice ..' SEK</span>',                   prop = 'prop_cs_burger_01',    type = 'food'},
                 {label = 'Sandwich <span style="color:green"> ' .. Config.EatPrice ..' SEK</span>',                 prop = 'prop_sandwich_01',     type = 'food'},
                 {label = 'Sparkling Water 50cl <span style="color:green"> ' .. Config.DrinkPrice ..' SEK</span>',   prop = 'prop_ld_flow_bottle',  type = 'drink'},
                 {label = 'Coca Cola 33cl<span style="color:green"> ' .. Config.DrinkPrice ..' SEK</span>',          prop = 'prop_ecola_can',       type = 'drink'},
