@@ -1,109 +1,154 @@
-ESX              = nil
-local PlayerData = {}
-
+ESX = nil
+local consuming = false
 Citizen.CreateThread(function()
     while ESX == nil do
-        TriggerEvent("esx:getSharedObject", function(obj)
-        ESX = obj
-        end)
-        Citizen.Wait(0)
+        Citizen.Wait(50)
+        ESX = exports["es_extended"]:getSharedObject()
     end
 end)
-
 
 Citizen.CreateThread(function()
+
+    for place, value in pairs(Config.Zones) do
+		local blip = AddBlipForCoord(value["coords"].x, value["coords"].y)
+		SetBlipSprite (blip, 238)
+		SetBlipDisplay(blip, 4)
+		SetBlipScale  (blip, 0.6)
+		SetBlipColour (blip, 69)
+		SetBlipAsShortRange(blip, true)
+		BeginTextCommandSetBlipName("STRING")
+		AddTextComponentString(place)
+		EndTextCommandSetBlipName(blip)
+    end
+    
     while true do
-        Citizen.Wait(0)
-        local coords = GetEntityCoords(PlayerPedId(), true)
-        for k in pairs(Config.Zones) do
-            if GetDistanceBetweenCoords(Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z, coords) < 1 then
-                Marker("~w~[~r~E~w~] Buy food", 27, Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z - 0.99)
-                if IsControlJustReleased(0, Keys['E']) then
-                    FoodMeny()
+        local sleepTime = 500
+        local coords = GetEntityCoords(PlayerPedId())
+
+        for place, value in pairs(Config.Zones) do
+            local dst = GetDistanceBetweenCoords(coords, value["coords"], true)
+            local text = place
+
+            if dst <= 7.5 then 
+                sleepTime = 5
+                
+                if dst <= 1.25 then
+                    text = "[~r~E~w~] " .. place
+                    if IsControlJustReleased(0, 38) then
+                        FoodStand(place)
+                    end
                 end
-            elseif GetDistanceBetweenCoords(Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z, coords) < 10 then
-                Marker("~w~Buy food", 27, Config.Zones[k].x, Config.Zones[k].y, Config.Zones[k].z - 0.99)
+
+                Marker(text, value["coords"].x, value["coords"].y, value["coords"].z - 0.98) 
             end
         end
+
+        Citizen.Wait(sleepTime)
     end
 end)
 
-function FoodMeny()
-    ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'foodstand',
-        {
-            title    = 'Food Stand',
-            align    = 'center',
-            elements = {
-                {label = 'Hotdog <span style="color:green"> ' .. Config.EatPrice ..' SEK</span> ',                  prop = 'prop_cs_hotdog_01',    type = 'food'},
-                {label = 'Burger <span style="color:green"> ' .. Config.EatPrice ..' SEK</span>',                   prop = 'prop_cs_burger_01',    type = 'food'},
-                {label = 'Sandwich <span style="color:green"> ' .. Config.EatPrice ..' SEK</span>',                 prop = 'prop_sandwich_01',     type = 'food'},
-                {label = 'Sparkling Water 50cl <span style="color:green"> ' .. Config.DrinkPrice ..' SEK</span>',   prop = 'prop_ld_flow_bottle',  type = 'drink'},
-                {label = 'Coca Cola 33cl<span style="color:green"> ' .. Config.DrinkPrice ..' SEK</span>',          prop = 'prop_ecola_can',       type = 'drink'},
+FoodStand = function(place)
 
+    ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'food_stand',
+    {
+        title    = place,
+        align    = 'center',
+        elements = {
+            { ["label"] = "Food", ["type"] = "eatable" },
+            { ["label"] = "Drinks", ["type"] = "drink" }
+        }
+    }, function(data, menu)
 
-            }
-        }, function(data, menu)
-            local selected = data.current.type
-            if selected == 'food' then
-                ESX.TriggerServerCallback("gamz-food:checkMoney", function(money)
-                    if money >= Config.EatPrice then
-                        ESX.UI.Menu.CloseAll()
-                        TriggerServerEvent("gamz-food:removeMoney", Config.EatPrice)
-                        eat(data.current.prop)
-                    else
-                        ESX.ShowNotification("You don't have enough cash.")
-                    end
-                end)
-            elseif selected == 'drink' then
-                ESX.TriggerServerCallback("gamz-food:checkMoney", function(money)
-                    if money >= Config.DrinkPrice then
-                        ESX.UI.Menu.CloseAll()
-                        TriggerServerEvent("gamz-food:removeMoney", Config.DrinkPrice)
-                        drink(data.current.prop) 
-                    else
-                        ESX.ShowNotification("You don't have enough cash.")
-                    end
-                end)
-            end
-        end, function(data, menu)
-            menu.close() 
+        local type = data.current.type
+
+        FoodMenu(place, type)
+
+    end, function(data, menu)
+        menu.close() 
     end)
 end
 
-function eat(prop)
-    local playerPed = PlayerPedId()
-    local x,y,z = table.unpack(GetEntityCoords(playerPed))
-    prop = CreateObject(GetHashKey(prop), x, y, z+0.2,  true,  true, true)
-    AttachEntityToEntity(prop, playerPed, GetPedBoneIndex(playerPed, 18905), 0.12, 0.028, 0.001, 10.0, 175.0, 0.0, true, true, false, true, 1, true)
-    RequestAnimDict('mp_player_inteat@burger')
-    while not HasAnimDictLoaded('mp_player_inteat@burger') do
-        Wait(0)
+FoodMenu = function(place, type)
+
+    local elements = {}
+
+    if Config.Zones[place][type] == nil then
+        Config.Zones[place][type] = Config[type]
     end
-    TaskPlayAnim(playerPed, 'mp_player_inteat@burger', 'mp_player_int_eat_burger_fp', 8.0, -8, -1, 49, 0, 0, 0, 0)
-    for i=1, 50 do
-        Wait(300)
-        TriggerEvent('esx_status:add', 'hunger', 10000)
+
+    for food, value in pairs(Config.Zones[place][type]) do
+
+        table.insert(elements, {
+            ["label"] = food .. " $" .. value.price,
+            ["price"] = value.price,
+            ["prop"] = value.prop
+        })
     end
-    IsAnimated = false
-    ClearPedSecondaryTask(playerPed)
-    DeleteObject(prop)
+
+    ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'food_menu',
+    {
+        title    = place,
+        align    = 'center',
+        elements = elements
+    }, function(data, menu)
+        
+        ESX.UI.Menu.CloseAll()
+
+        if MoneyCheck(data.current.price) then
+            TriggerServerEvent("gamz-food:removeMoney", data.current.price)
+
+            ESX.ShowNotification("You bought a " .. data.current.label)
+
+            Consume(data.current.prop, type)
+        else
+            ESX.ShowNotification("You do not have enough cash")
+        end
+
+    end, function(data, menu)
+        menu.close() 
+    end)
 end
 
-function drink(prop)
-    local playerPed = PlayerPedId()
-    local x,y,z = table.unpack(GetEntityCoords(playerPed))
-    prop = CreateObject(GetHashKey(prop), x, y, z+0.2,  true,  true, true)
-    AttachEntityToEntity(prop, playerPed, GetPedBoneIndex(playerPed, 18905), 0.15, 0.025, 0.010, 270.0, 175.0, 0.0, true, true, false, true, 1, true)
-    RequestAnimDict('mp_player_intdrink')
-    while not HasAnimDictLoaded('mp_player_intdrink') do
-        Wait(0)
+Consume = function(prop, type)
+
+    if consuming then
+        return
     end
-    TaskPlayAnim(playerPed, 'mp_player_intdrink', 'loop_bottle', 8.0, -8, -1, 49, 0, 0, 0, 0)
+
+    consuming = true
+
+    local dict = Config.Anims[type]["dict"]
+    local anim = Config.Anims[type]["animation"]
+
+    local coords = GetEntityCoords(PlayerPedId())
+
+    local prop = CreateObject(GetHashKey(prop), coords + vector3(0.0, 0.0, 0.2),  true,  true, true)
+
+    if type == "drink" then
+        AttachEntityToEntity(prop, PlayerPedId(), GetPedBoneIndex(PlayerPedId(), 18905), 0.15, 0.025, 0.010, 270.0, 175.0, 0.0, true, true, false, true, 1, true)
+    else
+        AttachEntityToEntity(prop, PlayerPedId(), GetPedBoneIndex(PlayerPedId(), 18905), 0.12, 0.028, 0.001, 10.0, 175.0, 0.0, true, true, false, true, 1, true)
+    end
+
+    LoadAnimDict(dict)
+
+    TaskPlayAnim(PlayerPedId(), dict, anim, 8.0, -8, -1, 49, 0, 0, 0, 0)
+
+    if type == "drink" then
+        type = "thirst"
+    elseif type == "eatable" then
+        type = "hunger"
+    end
+
     for i=1, 50 do
         Wait(300)
-        TriggerEvent('esx_status:add', 'thirst', 10000)
+        TriggerEvent('esx_status:add', type, 10000)
+      --  exports["gamz-status"]:SetStatus("Hunger", 0.7)
     end
-    IsAnimated = false
-    ClearPedSecondaryTask(playerPed)
+    
+    ClearPedSecondaryTask(PlayerPedId())
     DeleteObject(prop)
+
+    consuming = false
+
 end
