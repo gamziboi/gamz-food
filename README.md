@@ -10,4 +10,4 @@
 - Add "start gamz-food" in your server.cfg
 
 **[ Previews ]**
-- https://streamable.com/wx962
+- https://streamable.com/ncpzc
